@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "ms-python.python",
+    "ms-python.debugpy",
+    "ms-python.black-formatter",
+    "ms-python.flake8",
+    "ms-toolsai.jupyter",
+    "wholroyd.jinja",
+    "streetsidesoftware.code-spell-checker",
+    "christian-kohler.path-intellisense",
+    "njpwerner.autodocstring"
+  ]
+}

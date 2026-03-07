@@ -1,0 +1,43 @@
+{
+  "dataset_path": "data\\Layoffs_Dataset.csv",
+  "rf_trained": true,
+  "arima_trained": true,
+  "rf_metrics": {
+    "accuracy": 1.0,
+    "roc_auc": 1.0,
+    "cv_f1_mean": 1.0,
+    "cv_f1_std": 0.0,
+    "classification_report": {
+      "No Layoff": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 3.0
+      },
+      "Layoff": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 5.0
+      },
+      "accuracy": 1.0,
+      "macro avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 8.0
+      },
+      "weighted avg": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1-score": 1.0,
+        "support": 8.0
+      }
+    }
+  },
+  "arima_metrics": {
+    "RMSE": 3531.8,
+    "MAE": 3067.67,
+    "MAPE": 13908956879761.16
+  }
+}

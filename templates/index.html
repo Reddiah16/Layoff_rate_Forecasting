@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layoff Rate Forecasting Using Supervised Machine Learning Models</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#080c10;--surface:#0e1318;--s2:#151c24;--border:#1e2d3d;--accent:#00e5ff;--red:#ff4d6d;--green:#39ff14;--warn:#ffb347;--text:#c8d8e8;--dim:#4a6380;--bright:#eaf4ff;--mono:'IBM Plex Mono',monospace;--sans:'IBM Plex Sans',sans-serif;--display:'Syne',sans-serif;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,229,255,.012) 2px,rgba(0,229,255,.012) 4px);pointer-events:none;z-index:9999;}
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 36px;border-bottom:1px solid var(--border);background:rgba(8,12,16,.96);backdrop-filter:blur(10px);position:sticky;top:0;z-index:100;}
+.logo{font-family:var(--display);font-size:1.35rem;font-weight:800;color:var(--bright)}.logo span{color:var(--accent);}
+.tabs{display:flex;gap:3px;background:var(--surface);padding:4px;border-radius:8px;border:1px solid var(--border);}
+.tab{padding:7px 16px;border-radius:6px;border:none;background:transparent;color:var(--dim);font-family:var(--mono);font-size:.72rem;cursor:pointer;transition:all .2s;letter-spacing:.5px;}
+.tab.active{background:var(--accent);color:#000;font-weight:600;}
+.tab:hover:not(.active){color:var(--bright);}
+.pill{display:flex;align-items:center;gap:7px;font-family:var(--mono);font-size:.68rem;color:var(--green);background:rgba(57,255,20,.08);border:1px solid rgba(57,255,20,.2);padding:5px 13px;border-radius:20px;}
+.dot{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.page{display:none;padding:36px;animation:fi .3s ease;}
+.page.active{display:block;}
+@keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:26px;margin-bottom:18px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+.sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+.st{font-family:var(--display);font-size:1rem;font-weight:700;color:var(--bright);}
+.ss{font-family:var(--mono);font-size:.62rem;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px 22px;position:relative;overflow:hidden;}
+.stat::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--accent),transparent);}
+.sl{font-family:var(--mono);font-size:.62rem;color:var(--dim);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;}
+.sv{font-family:var(--display);font-size:1.8rem;font-weight:800;color:var(--bright);}
+.sv span{color:var(--accent);}
+.fg{display:flex;flex-direction:column;gap:7px;}
+.fg label{font-family:var(--mono);font-size:.63rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px;}
+.fg input,.fg select{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px 13px;color:var(--bright);font-family:var(--mono);font-size:.83rem;outline:none;transition:border-color .2s;width:100%;}
+.fg input:focus,.fg select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,229,255,.08);}
+.fg select option{background:var(--bg);}
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.fg3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+.btn{padding:11px 26px;border-radius:8px;font-family:var(--display);font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;border:none;}
+.btn-p{background:var(--accent);color:#000;}.btn-p:hover{background:#fff;transform:translateY(-1px);}
+.btn-s{background:transparent;color:var(--accent);border:1px solid var(--accent);font-family:var(--mono);font-size:.72rem;padding:9px 20px;}.btn-s:hover{background:rgba(0,229,255,.1);}
+.btn-w{background:var(--red);color:#fff;}.btn-w:hover{opacity:.85;}
+.upload{border:2px dashed var(--border);border-radius:14px;padding:46px;text-align:center;cursor:pointer;position:relative;transition:all .2s;}
+.upload:hover,.upload.over{border-color:var(--accent);background:rgba(0,229,255,.04);}
+.upload input{position:absolute;inset:0;opacity:0;cursor:pointer;}
+.upload-icon{font-size:2.4rem;margin-bottom:12px;}
+.upload-title{font-family:var(--display);font-size:1.05rem;color:var(--bright);margin-bottom:5px;}
+.upload-sub{font-family:var(--mono);font-size:.68rem;color:var(--dim);}
+.result{display:none;margin-top:22px;background:linear-gradient(135deg,rgba(0,229,255,.05),rgba(0,229,255,.02));border:1px solid rgba(0,229,255,.25);border-radius:14px;padding:22px;animation:fi .4s ease;}
+.result.show{display:block;}
+.gauge-row{display:flex;align-items:center;gap:18px;margin-bottom:18px;}
+.gauge{width:88px;height:88px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;border:3px solid var(--accent);flex-shrink:0;}
+.gpct{font-family:var(--display);font-size:1.45rem;font-weight:800;color:var(--accent);}
+.glbl{font-family:var(--mono);font-size:.56rem;color:var(--dim);}
+.mb{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.mbc{background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px;text-align:center;}
+.mbn{font-family:var(--mono);font-size:.6rem;color:var(--dim);margin-bottom:7px;text-transform:uppercase;}
+.mbv{font-family:var(--display);font-size:1.25rem;font-weight:700;}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-family:var(--mono);font-size:.6rem;}
+.bh{background:rgba(255,77,109,.15);color:var(--red);border:1px solid rgba(255,77,109,.3);}
+.bm{background:rgba(255,179,71,.12);color:var(--warn);border:1px solid rgba(255,179,71,.3);}
+.bl{background:rgba(57,255,20,.1);color:var(--green);border:1px solid rgba(57,255,20,.2);}
+table{width:100%;border-collapse:collapse;}
+th{font-family:var(--mono);font-size:.61rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px;padding:10px 13px;text-align:left;border-bottom:1px solid var(--border);}
+td{padding:11px 13px;font-size:.8rem;border-bottom:1px solid rgba(30,45,61,.5);}
+tr:hover td{background:rgba(0,229,255,.03);}
+.toast{position:fixed;bottom:22px;right:22px;padding:13px 20px;border-radius:10px;font-family:var(--mono);font-size:.75rem;z-index:9998;transform:translateY(100px);transition:transform .3s;max-width:360px;}
+.toast.show{transform:translateY(0);}
+.ts{background:#0d2318;border:1px solid rgba(57,255,20,.4);color:var(--green);}
+.te{background:#200d12;border:1px solid rgba(255,77,109,.4);color:var(--red);}
+.ti{background:#0d1820;border:1px solid rgba(0,229,255,.35);color:var(--accent);}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:middle;margin-right:6px;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.info-row{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(30,45,61,.4);}
+.ik{font-family:var(--mono);font-size:.65rem;color:var(--dim);text-transform:uppercase;letter-spacing:1px;width:140px;flex-shrink:0;}
+.iv{font-family:var(--mono);font-size:.78rem;color:var(--bright);font-weight:500;}
+img.chart{width:100%;border-radius:10px;border:1px solid var(--border);}
+.section-divider{font-family:var(--mono);font-size:.63rem;color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin:22px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+@media(max-width:900px){.g2,.g4,.g3,.fg2,.fg3,.mb{grid-template-columns:1fr;}.page{padding:22px 16px;}nav{padding:13px 18px;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" style="font-size:1rem;letter-spacing:0px;">Layoff Rate Forecasting <span>Using Supervised ML</span></div>
+  <div class="tabs">
+    <button class="tab active" onclick="nav('dashboard',this)">Dashboard</button>
+    <button class="tab" onclick="nav('train',this)">Train</button>
+    <button class="tab" onclick="nav('config',this)">Config</button>
+    <button class="tab" onclick="nav('predict',this)">Predict</button>
+    <button class="tab" onclick="nav('results',this)">Results</button>
+  </div>
+  <div class="pill"><div class="dot"></div><span id="statusText">READY</span></div>
+</nav>
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div style="text-align:center;padding:48px 20px 36px">
+    <div style="display:inline-block;font-family:var(--mono);font-size:.68rem;color:var(--accent);border:1px solid rgba(0,229,255,.3);padding:5px 14px;border-radius:20px;margin-bottom:20px;letter-spacing:2px;">⚡ RANDOM FOREST · ARIMA · SUPERVISED ML</div>
+    <h1 style="font-family:var(--display);font-size:clamp(1.4rem,4vw,2.8rem);font-weight:800;color:var(--bright);line-height:1.1;letter-spacing:-0.5px;margin-bottom:16px;">Layoff Rate Forecasting Using<br><span style="color:var(--accent)">Supervised Machine Learning Models</span></h1>
+    <p style="color:var(--dim);max-width:520px;margin:0 auto 30px;line-height:1.7;font-size:.95rem;">Upload your CSV, configure models, train Random Forest + ARIMA, and generate layoff risk predictions.</p>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-p" onclick="nav('train',document.querySelectorAll('.tab')[1])">Get Started →</button>
+      <button class="btn btn-s" onclick="nav('predict',document.querySelectorAll('.tab')[3])">Try Prediction</button>
+      <button class="btn btn-s" onclick="window.open('/docs','_blank')">API Docs ↗</button>
+    </div>
+  </div>
+  <div class="g4">
+    <div class="stat"><div class="sl">RF Accuracy</div><div class="sv" id="d-acc">—</div></div>
+    <div class="stat"><div class="sl">ROC-AUC</div><div class="sv" id="d-auc">—</div></div>
+    <div class="stat"><div class="sl">ARIMA RMSE</div><div class="sv" id="d-rmse">—</div></div>
+    <div class="stat"><div class="sl">ARIMA MAPE</div><div class="sv" id="d-mape">—</div></div>
+  </div>
+  <div class="g2" style="grid-template-columns:1fr">
+    <div class="card">
+      <div class="sh"><div class="st">System Status</div></div>
+      <div style="font-family:var(--mono);font-size:.78rem;line-height:2.3;">
+        
+        <div>🌲 Random Forest &nbsp;·&nbsp; <span id="st-rf" style="color:var(--red)">Not trained</span></div>
+        <div>📈 ARIMA &nbsp;·&nbsp; <span id="st-arima" style="color:var(--red)">Not trained</span></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- TRAIN -->
+<div class="page" id="page-train">
+  <div style="max-width:820px;margin:0 auto;">
+    <div style="margin-bottom:28px;"><div class="st" style="font-size:1.4rem;margin-bottom:5px;">Train Models</div><div class="ss">Select models and train on the dataset</div></div>
+
+    <div class="card">
+      <div class="sh"><div class="st">Select Models to Train</div></div>
+      <div class="fg2" style="margin-bottom:18px;">
+        <div class="fg"><label>Train Random Forest</label>
+          <select id="doRF"><option value="true">Yes</option><option value="false">No</option></select></div>
+        <div class="fg"><label>Train ARIMA</label>
+          <select id="doARIMA"><option value="true">Yes</option><option value="false">No</option></select></div>
+      </div>
+      <button class="btn btn-p" onclick="trainModels()" id="trainBtn">⚡ Train Models</button>
+      <div id="trainProg" style="display:none;margin-top:14px;font-family:var(--mono);font-size:.75rem;color:var(--accent);"></div>
+    </div>
+
+    <div class="card" id="trainResultCard" style="display:none;">
+      <div class="sh"><div class="st">Training Results</div></div>
+      <div id="trainResultContent"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIG -->
+<div class="page" id="page-config">
+  <div style="max-width:860px;margin:0 auto;">
+    <div style="margin-bottom:28px;"><div class="st" style="font-size:1.4rem;margin-bottom:5px;">Model Configuration</div><div class="ss">Adjust settings before training · Also editable in .env file</div></div>
+
+    <div class="card">
+      <div class="section-divider">🌲 Random Forest</div>
+      <div class="fg3">
+        <div class="fg"><label>N Estimators (trees)</label><input type="number" id="c-n_est" value="200" min="10" max="1000"/></div>
+        <div class="fg"><label>Max Depth ("None" = unlimited)</label><input type="text" id="c-depth" value="20"/></div>
+        <div class="fg"><label>Min Samples Split</label><input type="number" id="c-split" value="5" min="2" max="20"/></div>
+        <div class="fg"><label>Min Samples Leaf</label><input type="number" id="c-leaf" value="2" min="1" max="10"/></div>
+        <div class="fg"><label>Max Features</label>
+          <select id="c-feat"><option value="sqrt">sqrt</option><option value="log2">log2</option></select></div>
+        <div class="fg"><label>Layoff Threshold (0–1)</label><input type="number" id="c-thresh" value="0.20" min="0" max="1" step="0.05"/></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-divider">📈 ARIMA</div>
+      <div class="fg3">
+        <div class="fg"><label>Auto-select Order (p,d,q)</label>
+          <select id="c-auto"><option value="true">Yes (recommended)</option><option value="false">No — use manual</option></select></div>
+        <div class="fg"><label>P — AR Order</label><input type="number" id="c-p" value="1" min="0" max="5"/></div>
+        <div class="fg"><label>D — Differencing</label><input type="number" id="c-d" value="1" min="0" max="2"/></div>
+        <div class="fg"><label>Q — MA Order</label><input type="number" id="c-q" value="1" min="0" max="5"/></div>
+        <div class="fg"><label>Forecast Periods (months)</label><input type="number" id="c-steps" value="12" min="1" max="60"/></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-divider">⚙️ Training & Risk Thresholds</div>
+      <div class="fg3">
+        <div class="fg"><label>Test Size (0.1–0.4)</label><input type="number" id="c-test" value="0.20" min="0.1" max="0.4" step="0.05"/></div>
+        <div class="fg"><label>Random State (seed)</label><input type="number" id="c-seed" value="42"/></div>
+        <div class="fg"><label>Low Risk Max (%)</label><input type="number" id="c-low" value="0.10" min="0" max="1" step="0.05"/></div>
+        <div class="fg"><label>Medium Risk Max (%)</label><input type="number" id="c-med" value="0.25" min="0" max="1" step="0.05"/></div>
+        <div class="fg"><label>High Prob Threshold</label><input type="number" id="c-hp" value="0.70" min="0" max="1" step="0.05"/></div>
+        <div class="fg"><label>Medium Prob Threshold</label><input type="number" id="c-mp" value="0.40" min="0" max="1" step="0.05"/></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <button class="btn btn-p" onclick="saveConfig()">💾 Save Configuration</button>
+      <button class="btn btn-s" onclick="loadConfig()">↺ Load Current Config</button>
+    </div>
+  </div>
+</div>
+
+<!-- PREDICT -->
+<div class="page" id="page-predict">
+  <div style="max-width:800px;margin:0 auto;">
+    <div style="margin-bottom:28px;"><div class="st" style="font-size:1.4rem;margin-bottom:5px;">Single Company Prediction</div><div class="ss">Enter company details → get layoff risk score</div></div>
+    <div class="card">
+      <div class="fg2" style="margin-bottom:14px;">
+        <div class="fg"><label>Industry</label>
+          <select id="p-ind">
+            <option>Fintech</option><option>E-commerce</option><option>Edtech</option>
+            <option>Food Delivery</option><option>Automotive</option><option>Logistics</option>
+            <option>Gaming</option><option>Semiconductor</option><option>Networking</option>
+            <option>Telecom</option><option>Social Media</option><option>IT</option>
+            <option>Software</option><option>SaaS</option><option>Retail</option>
+            <option>Biotech</option><option>Media</option><option>Cybersecurity</option>
+            <option>Aerospace</option><option>HR Tech</option><option>Cloud Communications</option>
+          </select></div>
+        <div class="fg"><label>Funding Status</label>
+          <select id="p-funding">
+            <option>Private</option><option>Public</option><option>Acquired by Walmart</option>
+          </select></div>
+        <div class="fg"><label>City</label><input type="text" id="p-city" value="Bengaluru"/></div>
+        <div class="fg"><label>Layoff Count</label><input type="number" id="p-laid" value="500"/></div>
+        <div class="fg"><label>Year</label><input type="number" id="p-year" value="2024"/></div>
+        <div class="fg"><label>Month</label><input type="number" id="p-month" value="6" min="1" max="12"/></div>
+        <div class="fg"><label>Quarter</label><input type="number" id="p-q" value="2" min="1" max="4"/></div>
+      </div>
+      <button class="btn btn-p" onclick="runPredict()">⚡ Predict Risk</button>
+
+      <div class="result" id="predictResult">
+        <div class="gauge-row">
+          <div class="gauge" id="gaugeEl"><div class="gpct" id="gaugePct">—</div><div class="glbl">RISK</div></div>
+          <div>
+            <div style="font-family:var(--display);font-size:1.05rem;color:var(--bright);margin-bottom:7px;" id="riskTitle">—</div>
+            <div style="font-size:.82rem;color:var(--dim);line-height:1.6;" id="riskDesc">—</div>
+          </div>
+        </div>
+        <div class="ss" style="margin-bottom:9px;">Model Output</div>
+        <div class="mb">
+          <div class="mbc"><div class="mbn">Probability</div><div class="mbv" id="mb-prob" style="color:var(--accent)">—</div></div>
+          <div class="mbc"><div class="mbn">Prediction</div><div class="mbv" id="mb-pred" style="color:var(--warn)">—</div></div>
+          <div class="mbc"><div class="mbn">Risk Level</div><div class="mbv" id="mb-risk">—</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTS -->
+<div class="page" id="page-results">
+  <div style="margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+    <div><div class="st" style="font-size:1.4rem;margin-bottom:5px;">Results & Charts</div><div class="ss">Evaluation metrics from last training run</div></div>
+    <button class="btn btn-s" onclick="loadMetrics()">↺ Refresh</button>
+  </div>
+  <div class="g2">
+    <div class="card"><div class="sh"><div class="st">Random Forest</div></div><div id="rfM" style="font-family:var(--mono);font-size:.78rem;color:var(--dim);">Train model to see metrics.</div></div>
+    <div class="card"><div class="sh"><div class="st">ARIMA</div></div><div id="arM" style="font-family:var(--mono);font-size:.78rem;color:var(--dim);">Train model to see metrics.</div></div>
+  </div>
+  <div class="st" style="margin-bottom:14px;">Charts</div>
+  <div class="g2">
+    <div class="card"><div class="ss" style="margin-bottom:10px;">Confusion Matrix</div>
+      <img class="chart" id="img-cm" style="display:none;"/><div id="no-cm" style="font-family:var(--mono);font-size:.73rem;color:var(--dim);">Train Random Forest to generate.</div></div>
+    <div class="card"><div class="ss" style="margin-bottom:10px;">ROC Curve</div>
+      <img class="chart" id="img-roc" style="display:none;"/><div id="no-roc" style="font-family:var(--mono);font-size:.73rem;color:var(--dim);">Train Random Forest to generate.</div></div>
+    <div class="card"><div class="ss" style="margin-bottom:10px;">Feature Importance</div>
+      <img class="chart" id="img-fi" style="display:none;"/><div id="no-fi" style="font-family:var(--mono);font-size:.73rem;color:var(--dim);">Train Random Forest to generate.</div></div>
+    <div class="card"><div class="ss" style="margin-bottom:10px;">ARIMA Forecast</div>
+      <img class="chart" id="img-fc" style="display:none;"/><div id="no-fc" style="font-family:var(--mono);font-size:.73rem;color:var(--dim);">Train ARIMA to generate.</div></div>
+    <div class="card"><div class="ss" style="margin-bottom:10px;">ARIMA Diagnostics</div>
+      <img class="chart" id="img-diag" style="display:none;"/><div id="no-diag" style="font-family:var(--mono);font-size:.73rem;color:var(--dim);">Train ARIMA to generate.</div></div>
+    <div class="card"><div class="ss" style="margin-bottom:10px;">Walk-Forward Validation</div>
+      <img class="chart" id="img-wf" style="display:none;"/><div id="no-wf" style="font-family:var(--mono);font-size:.73rem;color:var(--dim);">Train ARIMA to generate.</div></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// NAV
+function nav(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+  if (id==='results') loadMetrics();
+  if (id==='dashboard') refreshDash();
+  if (id==='config') loadConfig();
+}
+
+// TOAST
+function toast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.className = `toast t${type} show`;
+  t.textContent = msg;
+  setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// UPLOAD
+async function uploadDataset() {
+  const file = document.getElementById('datasetFile').files[0];
+  if (!file) return;
+  const fd = new FormData(); fd.append('file', file);
+  toast('Uploading...', 'i');
+  const res  = await fetch('/upload', {method:'POST', body:fd});
+  const data = await res.json();
+  if (data.error) { toast(data.error, 'e'); return; }
+  const el = document.getElementById('uploadInfo');
+  el.style.display = 'block';
+  el.textContent = `✔ ${data.filename} · ${data.rows} rows · Class balance: ${JSON.stringify(data.class_balance)}`;
+  document.getElementById('st-data').textContent = `${data.rows} rows loaded`;
+  document.getElementById('st-data').style.color = 'var(--green)';
+  toast(`Dataset loaded: ${data.rows} rows`, 's');
+}
+
+// TRAIN
+async function trainModels() {
+  const btn  = document.getElementById('trainBtn');
+  const prog = document.getElementById('trainProg');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Training...';
+  prog.style.display = 'block';
+  prog.innerHTML = '<span class="spin"></span> Running — this may take 1–3 minutes for ARIMA...';
+  document.getElementById('statusText').textContent = 'TRAINING';
+  try {
+    const body = {
+      random_forest: document.getElementById('doRF').value === 'true',
+      arima:         document.getElementById('doARIMA').value === 'true',
+    };
+    const res  = await fetch('/train', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    const data = await res.json();
+    if (data.error) { toast(data.error, 'e'); return; }
+    let html = '';
+    if (data.results.random_forest) {
+      const rf = data.results.random_forest;
+      html += `<div class="section-divider">🌲 Random Forest</div>
+        <div class="info-row"><span class="ik">Accuracy</span><span class="iv" style="color:var(--accent)">${(rf.accuracy*100).toFixed(1)}%</span></div>
+        <div class="info-row"><span class="ik">ROC-AUC</span><span class="iv">${rf.roc_auc}</span></div>
+        <div class="info-row"><span class="ik">CV F1 Mean</span><span class="iv">${rf.cv_f1_mean}</span></div>`;
+      document.getElementById('st-rf').textContent = `Trained · Acc ${(rf.accuracy*100).toFixed(1)}%`;
+      document.getElementById('st-rf').style.color = 'var(--green)';
+    }
+    if (data.results.arima) {
+      const a = data.results.arima;
+      html += `<div class="section-divider">📈 ARIMA</div>
+        <div class="info-row"><span class="ik">Order</span><span class="iv">${a.order}</span></div>
+        <div class="info-row"><span class="ik">RMSE</span><span class="iv">${a.RMSE}</span></div>
+        <div class="info-row"><span class="ik">MAE</span><span class="iv">${a.MAE}</span></div>
+        <div class="info-row"><span class="ik">MAPE</span><span class="iv">${a.MAPE}%</span></div>`;
+      document.getElementById('st-arima').textContent = `Trained · RMSE ${a.RMSE}`;
+      document.getElementById('st-arima').style.color = 'var(--green)';
+    }
+    document.getElementById('trainResultCard').style.display = 'block';
+    document.getElementById('trainResultContent').innerHTML = html;
+    document.getElementById('statusText').textContent = 'TRAINED';
+    toast('Training complete!', 's');
+    refreshDash();
+  } catch(e) {
+    toast('Error: '+e.message, 'e');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '⚡ Train Models'; prog.style.display = 'none';
+  }
+}
+
+// CONFIG
+async function loadConfig() {
+  try {
+    const res  = await fetch('/config');
+    const data = await res.json();
+    const rf = data.random_forest, ar = data.arima, tr = data.training, rt = data.risk_thresholds;
+    document.getElementById('c-n_est').value = rf.n_estimators;
+    document.getElementById('c-depth').value = rf.max_depth;
+    document.getElementById('c-split').value = rf.min_samples_split;
+    document.getElementById('c-leaf').value  = rf.min_samples_leaf;
+    document.getElementById('c-feat').value  = rf.max_features;
+    document.getElementById('c-thresh').value= rf.positive_threshold;
+    document.getElementById('c-auto').value  = ar.auto_order.toString();
+    document.getElementById('c-p').value     = ar.p;
+    document.getElementById('c-d').value     = ar.d;
+    document.getElementById('c-q').value     = ar.q;
+    document.getElementById('c-steps').value = ar.forecast_steps;
+    document.getElementById('c-test').value  = tr.test_size;
+    document.getElementById('c-seed').value  = tr.random_state;
+    document.getElementById('c-low').value   = rt.low_max;
+    document.getElementById('c-med').value   = rt.medium_max;
+    document.getElementById('c-hp').value    = rt.high_prob;
+    document.getElementById('c-mp').value    = rt.medium_prob;
+  } catch(e) { toast('Could not load config', 'e'); }
+}
+
+async function saveConfig() {
+  const body = {
+    random_forest: {
+      n_estimators:       parseInt(document.getElementById('c-n_est').value),
+      max_depth:          document.getElementById('c-depth').value,
+      min_samples_split:  parseInt(document.getElementById('c-split').value),
+      min_samples_leaf:   parseInt(document.getElementById('c-leaf').value),
+      max_features:       document.getElementById('c-feat').value,
+      positive_threshold: parseFloat(document.getElementById('c-thresh').value),
+    },
+    arima: {
+      auto_order:     document.getElementById('c-auto').value === 'true',
+      p: parseInt(document.getElementById('c-p').value),
+      d: parseInt(document.getElementById('c-d').value),
+      q: parseInt(document.getElementById('c-q').value),
+      forecast_steps: parseInt(document.getElementById('c-steps').value),
+    },
+    training: {
+      test_size:    parseFloat(document.getElementById('c-test').value),
+      random_state: parseInt(document.getElementById('c-seed').value),
+    },
+    risk_thresholds: {
+      low_max:     parseFloat(document.getElementById('c-low').value),
+      medium_max:  parseFloat(document.getElementById('c-med').value),
+      high_prob:   parseFloat(document.getElementById('c-hp').value),
+      medium_prob: parseFloat(document.getElementById('c-mp').value),
+    }
+  };
+  try {
+    const res  = await fetch('/config', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    const data = await res.json();
+    if (data.error) { toast(data.error, 'e'); return; }
+    toast('Configuration saved ✅', 's');
+  } catch(e) { toast('Save failed: '+e.message, 'e'); }
+}
+
+// PREDICT
+async function runPredict() {
+  const body = {
+    Industry:       document.getElementById('p-ind').value,
+    Funding_Status: document.getElementById('p-funding').value,
+    City:           document.getElementById('p-city').value,
+    Layoff_Count:   parseFloat(document.getElementById('p-laid').value)  || 500,
+    year:           parseInt(document.getElementById('p-year').value)    || 2024,
+    month:          parseInt(document.getElementById('p-month').value)   || 6,
+    quarter:        parseInt(document.getElementById('p-q').value)       || 2,
+  };
+  try {
+    const res  = await fetch('/predict', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
+    const data = await res.json();
+    if (data.error) { toast(data.error, 'e'); return; }
+    const pct   = data.probability;
+    const color = pct>=70 ? 'var(--red)' : pct>=40 ? 'var(--warn)' : 'var(--green)';
+    document.getElementById('gaugePct').textContent    = pct+'%';
+    document.getElementById('gaugePct').style.color    = color;
+    document.getElementById('gaugeEl').style.borderColor = color;
+    const titles = {High:'⚠️ High Layoff Risk', Medium:'⚡ Moderate Risk', Low:'✅ Low Risk — Stable'};
+    const descs  = {High:`Strong layoff indicators detected. ${pct}% probability within 90 days.`,
+                    Medium:`Mixed signals — monitor closely. Risk probability: ${pct}%.`,
+                    Low:`Stable outlook. Layoff probability: ${pct}%.`};
+    document.getElementById('riskTitle').textContent = titles[data.risk_label];
+    document.getElementById('riskDesc').textContent  = descs[data.risk_label];
+    document.getElementById('mb-prob').textContent   = pct+'%';
+    document.getElementById('mb-pred').textContent   = data.prediction ? 'Layoff' : 'No Layoff';
+    document.getElementById('mb-risk').textContent   = data.risk_label;
+    document.getElementById('mb-risk').style.color   = color;
+    document.getElementById('predictResult').classList.add('show');
+  } catch(e) { toast('Prediction error: '+e.message, 'e'); }
+}
+
+// METRICS & CHARTS
+async function loadMetrics() {
+  try {
+    const res  = await fetch('/metrics');
+    const data = await res.json();
+    const rf = data.random_forest, ar = data.arima;
+    if (Object.keys(rf).length) {
+      document.getElementById('rfM').innerHTML = `
+        <div class="info-row"><span class="ik">Accuracy</span><span class="iv" style="color:var(--accent)">${(rf.accuracy*100).toFixed(1)}%</span></div>
+        <div class="info-row"><span class="ik">ROC-AUC</span><span class="iv">${rf.roc_auc}</span></div>
+        <div class="info-row"><span class="ik">CV F1 Mean</span><span class="iv">${rf.cv_f1_mean}</span></div>
+        <div class="info-row"><span class="ik">CV F1 Std</span><span class="iv">±${rf.cv_f1_std}</span></div>`;
+      showChart('img-cm','no-cm','/outputs/rf_confusion_matrix.png');
+      showChart('img-roc','no-roc','/outputs/rf_roc_curve.png');
+      showChart('img-fi','no-fi','/outputs/rf_feature_importance.png');
+    }
+    if (Object.keys(ar).length) {
+      document.getElementById('arM').innerHTML = `
+        <div class="info-row"><span class="ik">Order</span><span class="iv">${ar.order||'—'}</span></div>
+        <div class="info-row"><span class="ik">RMSE</span><span class="iv" style="color:var(--accent)">${ar.RMSE}</span></div>
+        <div class="info-row"><span class="ik">MAE</span><span class="iv">${ar.MAE}</span></div>
+        <div class="info-row"><span class="ik">MAPE</span><span class="iv">${ar.MAPE}%</span></div>`;
+      showChart('img-fc','no-fc','/outputs/arima_forecast.png');
+      showChart('img-diag','no-diag','/outputs/arima_diagnostics.png');
+      showChart('img-wf','no-wf','/outputs/arima_walk_forward.png');
+    }
+  } catch(e) { console.error(e); }
+}
+
+function showChart(imgId, noId, src) {
+  const img = document.getElementById(imgId), no = document.getElementById(noId);
+  img.src = src+'?t='+Date.now();
+  img.style.display = 'block';
+  img.onerror = () => { img.style.display='none'; no.style.display='block'; };
+  no.style.display = 'none';
+}
+
+async function refreshDash() {
+  try {
+    const res  = await fetch('/metrics');
+    const data = await res.json();
+    const rf = data.random_forest, ar = data.arima;
+    document.getElementById('d-acc').innerHTML  = Object.keys(rf).length ? `<span>${(rf.accuracy*100).toFixed(1)}%</span>` : '—';
+    document.getElementById('d-auc').innerHTML  = Object.keys(rf).length ? `<span>${rf.roc_auc}</span>` : '—';
+    document.getElementById('d-rmse').innerHTML = Object.keys(ar).length ? `<span>${ar.RMSE}</span>` : '—';
+    document.getElementById('d-mape').innerHTML = Object.keys(ar).length ? `<span>${ar.MAPE}%</span>` : '—';
+    if (data.status.dataset_loaded) {
+      document.getElementById('st-data').textContent = 'Dataset loaded';
+      document.getElementById('st-data').style.color = 'var(--green)';
+
+    }
+    if (data.status.rf_trained) {
+      document.getElementById('st-rf').textContent = `Trained · Acc ${(rf.accuracy*100).toFixed(1)}%`;
+      document.getElementById('st-rf').style.color = 'var(--green)';
+      document.getElementById('statusText').textContent = 'TRAINED';
+    }
+    if (data.status.arima_trained) {
+      document.getElementById('st-arima').textContent = `Trained · RMSE ${ar.RMSE}`;
+      document.getElementById('st-arima').style.color = 'var(--green)';
+    }
+  } catch(e) {}
+}
+
+// Auto-check state on every page load
+window.addEventListener('load', () => refreshDash());
+</script>
+</body>
+</html>
