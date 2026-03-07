@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # LayoffLens — ML Layoff Rate Forecasting Platform
 
 Supervised machine learning platform using **Random Forest** (classification)
@@ -205,3 +206,6 @@ curl -X POST http://localhost:5000/predict \
 | ARIMA takes too long | Reduce `max_combinations` in `auto_select_order()` |
 | `layoffs_occurred` column missing | Add it to CSV, or ensure `layoff_rate` column exists |
 | Charts not showing in UI | Train models first via `/train` route |
+=======
+# Layoff_rate_Forecasting
+>>>>>>> 3ec648e1735aeb8c89dbd367c75716863373b09e
