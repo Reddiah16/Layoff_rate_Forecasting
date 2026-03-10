@@ -1,9 +1,4 @@
-"""
-random_forest_model.py
------------------------
-Random Forest classifier for layoff risk prediction.
-Works with small datasets (39 rows) using cross-validation.
-"""
+
 
 import numpy as np
 import matplotlib

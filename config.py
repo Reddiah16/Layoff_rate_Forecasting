@@ -1,7 +1,4 @@
-"""
-config.py — Central configuration for LayoffLens.
-All values can be overridden via .env file.
-"""
+
 import os
 from dotenv import load_dotenv
 load_dotenv()

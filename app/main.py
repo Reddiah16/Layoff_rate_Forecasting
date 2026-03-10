@@ -1,10 +1,3 @@
-"""
-app.py — FastAPI backend for LayoffLens
-URLs:
-  http://127.0.0.1:8000        → Website
-  http://127.0.0.1:8000/docs   → Swagger API docs
-  http://127.0.0.1:8000/redoc  → Redoc API docs
-"""
 
 import os, logging, traceback
 from fastapi import FastAPI, File, UploadFile, HTTPException
@@ -353,3 +346,4 @@ if __name__ == "__main__":
     print(f"  App      → http://127.0.0.1:{cfg.PORT}")
     print(f"  API Docs → http://127.0.0.1:{cfg.PORT}/docs\n")
     uvicorn.run("app:app", host="127.0.0.1", port=cfg.PORT, reload=True)
+                    

@@ -93,6 +93,7 @@ img.chart{width:100%;border-radius:10px;border:1px solid var(--border);}
     <button class="tab" onclick="nav('train',this)">Train</button>
     <button class="tab" onclick="nav('config',this)">Config</button>
     <button class="tab" onclick="nav('predict',this)">Predict</button>
+    <button class="tab" onclick="nav('batch',this)">Batch</button>
     <button class="tab" onclick="nav('results',this)">Results</button>
   </div>
   <div class="pill"><div class="dot"></div><span id="statusText">READY</span></div>
@@ -210,20 +211,20 @@ img.chart{width:100%;border-radius:10px;border:1px solid var(--border);}
       <div class="fg2" style="margin-bottom:14px;">
         <div class="fg"><label>Industry</label>
           <select id="p-ind">
-            <option>Fintech</option><option>E-commerce</option><option>Edtech</option>
-            <option>Food Delivery</option><option>Automotive</option><option>Logistics</option>
-            <option>Gaming</option><option>Semiconductor</option><option>Networking</option>
-            <option>Telecom</option><option>Social Media</option><option>IT</option>
-            <option>Software</option><option>SaaS</option><option>Retail</option>
-            <option>Biotech</option><option>Media</option><option>Cybersecurity</option>
-            <option>Aerospace</option><option>HR Tech</option><option>Cloud Communications</option>
+            <option>Finance</option><option>Retail</option><option>Healthcare</option>
+            <option>Transportation</option><option>Food</option><option>Consumer</option>
+            <option>Marketing</option><option>Real Estate</option><option>Crypto</option>
+            <option>Technology</option><option>Media</option><option>Other</option>
           </select></div>
-        <div class="fg"><label>Funding Status</label>
-          <select id="p-funding">
-            <option>Private</option><option>Public</option><option>Acquired by Walmart</option>
+        <div class="fg"><label>Country</label><input type="text" id="p-country" value="United States"/></div>
+        <div class="fg"><label>Stage</label>
+          <select id="p-stage">
+            <option>Series A</option><option>Series B</option><option>Series C</option>
+            <option>Series D</option><option>Post-IPO</option><option>Unknown</option>
           </select></div>
-        <div class="fg"><label>City</label><input type="text" id="p-city" value="Bengaluru"/></div>
-        <div class="fg"><label>Layoff Count</label><input type="number" id="p-laid" value="500"/></div>
+        <div class="fg"><label>Laid Off Count</label><input type="number" id="p-laid" value="200"/></div>
+        <div class="fg"><label>Funds Raised ($M)</label><input type="number" id="p-funds" value="500"/></div>
+        <div class="fg"><label>Layoff % (0.0 – 1.0)</label><input type="number" id="p-pct" value="0.15" min="0" max="1" step="0.01"/></div>
         <div class="fg"><label>Year</label><input type="number" id="p-year" value="2024"/></div>
         <div class="fg"><label>Month</label><input type="number" id="p-month" value="6" min="1" max="12"/></div>
         <div class="fg"><label>Quarter</label><input type="number" id="p-q" value="2" min="1" max="4"/></div>
@@ -244,6 +245,29 @@ img.chart{width:100%;border-radius:10px;border:1px solid var(--border);}
           <div class="mbc"><div class="mbn">Prediction</div><div class="mbv" id="mb-pred" style="color:var(--warn)">—</div></div>
           <div class="mbc"><div class="mbn">Risk Level</div><div class="mbv" id="mb-risk">—</div></div>
         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BATCH -->
+<div class="page" id="page-batch">
+  <div style="max-width:900px;margin:0 auto;">
+    <div style="margin-bottom:28px;"><div class="st" style="font-size:1.4rem;margin-bottom:5px;">Batch Prediction</div><div class="ss">Upload a CSV with multiple companies</div></div>
+    <div class="card">
+      <div class="upload">
+        <input type="file" accept=".csv,.xlsx" id="batchFile" onchange="runBatch()"/>
+        <div class="upload-icon">📊</div>
+        <div class="upload-title">Drop Batch CSV Here</div>
+        <div class="upload-sub" style="margin-top:5px;">Same format as training data</div>
+      </div>
+    </div>
+    <div id="batchOut" style="display:none;">
+      <div class="g4" id="batchStats"></div>
+      <div class="card">
+        <div class="sh"><div class="st">Predictions</div><button class="btn btn-s" onclick="exportBatch()">⬇ Export CSV</button></div>
+        <table><thead><tr><th>#</th><th>Company</th><th>Industry</th><th>Country</th><th>Laid Off</th><th>Probability</th><th>Risk</th></tr></thead>
+        <tbody id="batchBody"></tbody></table>
       </div>
     </div>
   </div>
@@ -430,9 +454,11 @@ async function saveConfig() {
 async function runPredict() {
   const body = {
     Industry:       document.getElementById('p-ind').value,
-    Funding_Status: document.getElementById('p-funding').value,
-    City:           document.getElementById('p-city').value,
-    Layoff_Count:   parseFloat(document.getElementById('p-laid').value)  || 500,
+    Country:        document.getElementById('p-country').value,
+    Stage:          document.getElementById('p-stage').value,
+    Laid_Off_Count: parseFloat(document.getElementById('p-laid').value)  || 200,
+    Funds_Raised:   parseFloat(document.getElementById('p-funds').value) || 500,
+    Percentage:     parseFloat(document.getElementById('p-pct').value)   || 0.15,
     year:           parseInt(document.getElementById('p-year').value)    || 2024,
     month:          parseInt(document.getElementById('p-month').value)   || 6,
     quarter:        parseInt(document.getElementById('p-q').value)       || 2,
@@ -458,6 +484,44 @@ async function runPredict() {
     document.getElementById('mb-risk').style.color   = color;
     document.getElementById('predictResult').classList.add('show');
   } catch(e) { toast('Prediction error: '+e.message, 'e'); }
+}
+
+// BATCH
+let batchData = [];
+async function runBatch() {
+  const file = document.getElementById('batchFile').files[0];
+  if (!file) return;
+  const fd = new FormData(); fd.append('file', file);
+  toast('Running batch predictions...', 'i');
+  try {
+    const res  = await fetch('/batch', {method:'POST', body:fd});
+    const data = await res.json();
+    if (data.error) { toast(data.error, 'e'); return; }
+    batchData = data.predictions;
+    const s = data.summary;
+    document.getElementById('batchOut').style.display = 'block';
+    document.getElementById('batchStats').innerHTML = `
+      <div class="stat"><div class="sl">Total</div><div class="sv"><span>${s.total}</span></div></div>
+      <div class="stat"><div class="sl">High Risk</div><div class="sv" style="color:var(--red)">${s.high}</div></div>
+      <div class="stat"><div class="sl">Medium Risk</div><div class="sv" style="color:var(--warn)">${s.medium}</div></div>
+      <div class="stat"><div class="sl">Low Risk</div><div class="sv" style="color:var(--green)">${s.low}</div></div>`;
+    const bm = {High:'bh', Medium:'bm', Low:'bl'};
+    document.getElementById('batchBody').innerHTML = batchData.map((r,i)=>`<tr>
+      <td style="color:var(--dim)">${i+1}</td>
+      <td style="color:var(--bright)">${r.company}</td><td>${r.industry}</td><td>${r.country}</td>
+      <td>${Number(r.laid_off).toLocaleString()}</td><td>${r.probability}%</td>
+      <td><span class="badge ${bm[r.risk_label]}">${r.risk_label.toUpperCase()}</span></td></tr>`).join('');
+    toast(`Batch done: ${s.total} predictions`, 's');
+  } catch(e) { toast('Batch error: '+e.message, 'e'); }
+}
+
+function exportBatch() {
+  if (!batchData.length) return;
+  const header = Object.keys(batchData[0]).join(',');
+  const rows   = batchData.map(r => Object.values(r).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([header+'\n'+rows], {type:'text/csv'}));
+  a.download = 'layoff_predictions.csv'; a.click();
 }
 
 // METRICS & CHARTS

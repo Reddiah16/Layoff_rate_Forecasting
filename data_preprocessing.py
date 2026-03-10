@@ -1,14 +1,4 @@
-"""
-data_preprocessing.py
-----------------------
-Tailored for Layoffs_Dataset.csv with columns:
-  Company Name, Industry, Layoff Count, Date of Layoff,
-  Reason, City, Funding Status, Source URL
 
-Handles messy Layoff Count values like "1100-1500", "80% workforce", "Unknown"
-RF  target : layoffs_occurred  (1 if Layoff Count >= 500, else 0)
-ARIMA target: monthly layoff count over time
-"""
 
 import pandas as pd
 import numpy as np

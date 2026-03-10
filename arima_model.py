@@ -1,9 +1,4 @@
-"""
-arima_model.py
----------------
-ARIMA time series forecasting for monthly layoff counts.
-Handles small datasets gracefully.
-"""
+
 
 import numpy as np
 import matplotlib
